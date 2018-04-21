@@ -1,0 +1,130 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</h:head>
+
+<h:body>
+	<ui:composition template="/WEB-INF/facelets/template.xhtml">
+		<ui:define name="body">
+			<f:view>
+				<p:ajaxStatus onstart="PF('statusDialog').show()"
+					onsuccess="PF('statusDialog').hide()" />
+				<p:dialog modal="true" widgetVar="statusDialog" header="Loading"
+					draggable="false" closable="false">
+					<p:graphicImage
+						value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />
+				</p:dialog>
+
+				<!-- Expired session -->
+				<p:idleMonitor onactive="PF('sessionTimeOutDialog').show();"
+					timeout="#{session.maxInactiveInterval * 1000}" />
+				<p:dialog modal="true" widgetVar="sessionTimeOutDialog"
+					header="Expired session" draggable="false" closable="false">
+					<h:outputText value="The session is finished" />
+					<input id="confirmBackToLogin" type="button" value="Sign in"
+						onclick="window.location='#{facesContext.externalContext.requestContextPath}/index.jsp';" />
+				</p:dialog>
+
+
+				<h:form id="formDialog">
+					<p:messages id="msg" autoUpdate="true" showDetail="false"
+						closable="true" />
+					<p:growl id="men" autoUpdate="true" showDetail="false" />
+					<p:panel id="panelVerPregunta" header="Pregunta">
+						<h:panelGrid columns="2" id="panelGrid">
+
+							<h:outputText value="Usuario que pregunta:" />
+							<p:outputLabel value="#{preguntaForoView.txtUsuarioQuePregunta}"
+								style="font-weight: bold;" />
+							<h:outputText value="Título de la pregunta: " />
+							<p:outputLabel value="#{preguntaForoView.txtTituloPregunta}"
+								style="font-weight: bold;" />
+							<h:outputText value="Contenido de la pregunta: " />
+							<p:graphicImage id="imagenFormula"
+								value="#{preguntaForoView.image}" stream="true" cache="false" />
+
+						</h:panelGrid>
+						<h:panelGrid columns="2" header="Responder">
+
+						</h:panelGrid>
+					</p:panel>
+
+					<p:panel id="panelRespuestasPreguntaForo"
+						header="Respuestas de otros usuarios">
+						<p:dataTable id="respuestasPreguntaForo"
+							emptyMessage="Actualmente no hay respuestas"
+							value="#{preguntaForoView.lasRespuestasDeLaPregunta}"
+							var="respuesta">
+							<p:column headerText="Título"
+								style="width:20%;text-align: center">
+								<p:outputLabel value="#{respuesta.tituloComentario}" />
+							</p:column>
+
+							<p:column headerText="Usuario que responde"
+								style="width:20%;text-align: center">
+								<p:outputLabel value="#{respuesta.nombreUsuarioQueComenta}" />
+							</p:column>
+
+							<p:column headerText="Contenido"
+								style="width:7%;text-align: center">
+								<p:commandButton 
+									actionListener="#{preguntaForoView.ponerEnSessionRespuestaForo}"
+									title="Ampliar esta respuesta"
+									icon="ui-icon-comment"
+									update="@([id$=imagenFormulaRespuesta])"
+									oncomplete="window.open('#{facesContext.externalContext.request.contextPath}/Presentation/ampliarPreguntaForo.xhtml','','toolbar=yes, scrollbars=yes, resizable=yes, top=300, left=0, width=1300, height=100');">
+									<f:attribute name="respuestaMostrar" value="#{respuesta}" />
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:panel id="panelResponder" header="Respuesta"
+						style="height:600px">
+						<h:outputLabel value="Título respuesta: " />
+						<p:inputText id="txtTituloRespuestaForo" style="width:75%"
+							binding="#{preguntaForoView.txtTituloRespuestaForo}" />
+						<p:commandButton id="btnPreguntar"
+							action="#{preguntaForoView.responderPregunta()}"
+							onclick="doGet()" value="Responder Pregunta" icon="ui-icon-check"
+							update="panelResponder, panelVerPregunta, txtContenidoRespuesta, panelRespuestasPreguntaForo, respuestasPreguntaForo, @([id$=editorRespuestaContainer])" />
+						<div style="height: 480px;" id="editorRespuestaContainer"></div>
+						<p:inputText id="txtContenidoRespuesta"
+							binding="#{preguntaForoView.txtContenidoRespuesta}"
+							style="width: 1000px" />
+						<script
+							src="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/js/wirisEditor.js"></script>
+						<script type="text/javascript">
+							var editor;
+							var exp = '<math xmlns="http://www.w3.org/1998/Math/MathML"><msubsup><mo>&#x0222B;</mo><mn>1</mn><mn>3</mn></msubsup><mn>3</mn><mi>x</mi><mo>d</mo><mi>x</mi></math>';
+							window.onload = function() {
+								editor = com.wiris.jsEditor.JsEditor
+										.newInstance({
+											'language' : 'es'
+										});
+								editor
+										.insertInto(document
+												.getElementById('editorRespuestaContainer'));
+							}
+
+							function doGet() {
+								document
+										.getElementById('formDialog:txtContenidoRespuesta').value = editor
+										.getMathML();
+								//window.onload();
+							}
+						</script>
+
+					</p:panel>
+				</h:form>
+			</f:view>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

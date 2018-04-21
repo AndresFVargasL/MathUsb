@@ -1,0 +1,72 @@
+package co.edu.usbcali.mathusb.dataaccess.dao;
+
+import co.edu.usbcali.mathusb.dataaccess.api.HibernateDaoImpl;
+import co.edu.usbcali.mathusb.modelo.Tema;
+
+import org.hibernate.Query;
+import org.hibernate.SessionFactory;
+
+import org.hibernate.criterion.Example;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+
+/**
+ * A data access object (DAO) providing persistence and search support for
+ * Tema entities. Transaction control of the save(), update() and
+ * delete() operations can directly support Spring container-managed
+ * transactions or they can be augmented to handle user-managed Spring
+ * transactions. Each of these methods provides additional information for how
+ * to configure it for the desired type of transaction control.
+ *
+ * @see lidis.Tema
+ */
+@Scope("singleton")
+@Repository("TemaDAO")
+public class TemaDAO extends HibernateDaoImpl<Tema, Long> implements ITemaDAO {
+    private static final Logger log = LoggerFactory.getLogger(TemaDAO.class);
+    @Resource
+    private SessionFactory sessionFactory;
+
+    public static ITemaDAO getFromApplicationContext(ApplicationContext ctx) {
+        return (ITemaDAO) ctx.getBean("TemaDAO");
+    }
+
+	@Override
+	public List<Tema> obtenerTemaDadoPalabraClaveConTilde(String palabraClave) {
+		String hql = "SELECT t FROM Tema t "
+				+ "WHERE t.palabrasClave LIKE '%"+palabraClave+"%' "
+						+ "ORDER BY t.tituloTema ASC ";
+		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		
+		return query.list();
+	}
+
+	@Override
+	public List<Tema> obtenerTemaDadoPalabraClaveSinTilde(String palabraClave) {
+		String hql = "SELECT t FROM Tema t "
+				+ "WHERE UPPER(SINACENTOS(t.palabrasClave)) LIKE '%"+palabraClave+"%' "
+						+ "ORDER BY t.tituloTema ASC ";
+		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		
+		return query.list();
+	}
+}

@@ -1,0 +1,151 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+	<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	</h:head>
+
+	<h:body>
+		  <ui:composition template="/WEB-INF/facelets/template.xhtml">	
+		 
+		 	<ui:define name="body">	
+				<f:view>
+					<p:ajaxStatus onstart="PF('statusDialog').show()" onsuccess="PF('statusDialog').hide()"/>               
+					<p:dialog modal="true" widgetVar="statusDialog" header="Loading"  draggable="false" closable="false">  
+   						<p:graphicImage value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />   
+					</p:dialog>
+					
+					<!-- Expired session -->
+					<p:idleMonitor onactive="PF('sessionTimeOutDialog').show();" timeout="#{session.maxInactiveInterval * 1000}" />
+					<p:dialog modal="true" widgetVar="sessionTimeOutDialog" header="Expired session"  draggable="false" closable="false">  
+	   					<h:outputText value="The session is finished" />
+	                 	<input id="confirmBackToLogin" 
+	                 		type="button" 
+	                 		value="Sign in"
+	                    	onclick="window.location='#{facesContext.externalContext.requestContextPath}/index.jsp';" />   
+					</p:dialog>
+					
+		  			<h:form id="frm">								  		
+						
+						<p:panel id="panelDataTableHerramienta" header="HerramientaData">
+							<p:growl id="men"/>				
+							<p:dataTable value="#{herramientaView.data}" var="herramienta"
+								paginator="true" rows="5">
+																										<p:column filterBy="#{herramienta.herrId}" sortBy="#{herramienta.herrId}" >
+										 <f:facet name="header">
+										<h:outputText value="herrId"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.herrId}"/>
+										 </p:column>
+			                    																									
+										<p:column filterBy="#{herramienta.descripcionHerramienta}" sortBy="#{herramienta.descripcionHerramienta}" >
+										 <f:facet name="header">
+										<h:outputText value="DescripcionHerramienta"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.descripcionHerramienta}"/>
+										</p:column>   
+			                    									
+										<p:column filterBy="#{herramienta.estadoRegistro}" sortBy="#{herramienta.estadoRegistro}" >
+										 <f:facet name="header">
+										<h:outputText value="EstadoRegistro"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.estadoRegistro}"/>
+										</p:column>   
+			                    									
+										<p:column filterBy="#{herramienta.fechaPublicacion}" sortBy="#{herramienta.fechaPublicacion}" >
+										 <f:facet name="header">
+										<h:outputText value="FechaPublicacion"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.fechaPublicacion}"/>
+										</p:column>   
+			                    									
+										<p:column filterBy="#{herramienta.valorHerramienta}" sortBy="#{herramienta.valorHerramienta}" >
+										 <f:facet name="header">
+										<h:outputText value="ValorHerramienta"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.valorHerramienta}"/>
+										</p:column>   
+			                    									
+										<p:column filterBy="#{herramienta.tiheId_TipoHerramienta}" sortBy="#{herramienta.tiheId_TipoHerramienta}" >
+										 <f:facet name="header">
+										<h:outputText value="TiheId_TipoHerramienta"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.tiheId_TipoHerramienta}"/>
+										</p:column>   
+			                    									
+										<p:column filterBy="#{herramienta.usuaId_Usuario}" sortBy="#{herramienta.usuaId_Usuario}" >
+										 <f:facet name="header">
+										<h:outputText value="UsuaId_Usuario"/>
+										</f:facet>
+										 <h:outputText value="#{herramienta.usuaId_Usuario}"/>
+										</p:column>   
+			                    			                    
+								<p:column headerText="Options">
+									<p:commandButton id="btnEdit" icon="ui-icon-pencil"
+										update=":dialogHerramienta"
+										actionListener="#{herramientaView.action_edit}">
+										<f:attribute name="selectedHerramienta" value="#{herramienta}" />
+									</p:commandButton>
+									<p:commandButton id="btnDelete"									
+										title="Delete" actionListener="#{herramientaView.action_delete_datatable}"
+										onclick="if(!confirm('Do you really want to delete this Entry?')){return false;}"
+										icon="ui-icon-trash" update="@form">
+										<f:attribute name="selectedHerramienta" value="#{herramienta}" />
+									</p:commandButton>
+								</p:column>									                    
+							</p:dataTable>	
+						</p:panel>
+						<p:panel id="panelBoton">
+							<div align="center">
+								<p:commandButton id="btnNew" value="New"
+									action="#{herramientaView.action_new()}" update=":dialogHerramienta" />
+							</div>
+						</p:panel>						
+		   			</h:form>
+					<p:dialog id="dialogHerramienta" appendTo="@(body)" draggable="true"
+						closable="false" visible="#{herramientaView.showDialog}" resizable="false"
+						modal="true" width="500">
+						<h:form id="formDialog">
+							<p:messages id="msg" />
+							<p:panel id="panelHerramienta" header="Herramienta">							
+							    <h:panelGrid columns="2" id="panelGrid" >
+																		 <h:outputText id="msgHerrId" value="HerrId"/>
+									 <p:inputText id="txtHerrId" binding="#{herramientaView.txtHerrId}">
+									 <p:ajax update=":dialogHerramienta" listener="#{herramientaView.listener_txtId}"/>
+									 </p:inputText>	
+																											
+																		<h:outputText id="msgDescripcionHerramienta" value=" DescripcionHerramienta"/>
+									<p:inputText id="txtDescripcionHerramienta" disabled="true" binding="#{herramientaView.txtDescripcionHerramienta}"/>
+																		<h:outputText id="msgEstadoRegistro" value=" EstadoRegistro"/>
+									<p:inputText id="txtEstadoRegistro" disabled="true" binding="#{herramientaView.txtEstadoRegistro}"/>
+																		<h:outputText id="msgValorHerramienta" value=" ValorHerramienta"/>
+									<p:inputText id="txtValorHerramienta" disabled="true" binding="#{herramientaView.txtValorHerramienta}"/>
+																		<h:outputText id="msgTiheId_TipoHerramienta" value=" TiheId_TipoHerramienta"/>
+									<p:inputText id="txtTiheId_TipoHerramienta" disabled="true" binding="#{herramientaView.txtTiheId_TipoHerramienta}"/>
+																		<h:outputText id="msgUsuaId_Usuario" value=" UsuaId_Usuario"/>
+									<p:inputText id="txtUsuaId_Usuario" disabled="true" binding="#{herramientaView.txtUsuaId_Usuario}"/>
+																		
+																													<h:outputText id="msgFechaPublicacion" value=" FechaPublicacion"/>
+																				<p:calendar showOn="button" navigator="true" locale="en" 
+										binding="#{herramientaView.txtFechaPublicacion}" >
+										<p:ajax event="dateSelect" listener="#{herramientaView.listener_txtFechaPublicacion}" />
+										</p:calendar>
+																										    </h:panelGrid>
+							</p:panel>						   
+							<p:panel id="panelBotones">
+								<div align="center">					
+									<p:commandButton id="btnSave" binding="#{herramientaView.btnSave}" value="Save" action="#{herramientaView.action_save()}" update=":dialogHerramienta :frm:panelDataTableHerramienta" />
+									<p:commandButton id="btnClear" value="Clear" action="#{herramientaView.action_clear()}" update=":dialogHerramienta" />
+									<p:commandButton id="btnExit" value="Exit" action="#{herramientaView.action_closeDialog()}" update=":dialogHerramienta" />
+								</div>
+							</p:panel>					
+						</h:form>
+					</p:dialog>
+				</f:view>
+			</ui:define>		
+		</ui:composition>	
+	</h:body>	
+</html>	

@@ -1,0 +1,175 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</h:head>
+
+<h:body>
+	<ui:composition template="/WEB-INF/facelets/template.xhtml">
+		<ui:define name="body">
+			<f:view>
+				<p:ajaxStatus onstart="PF('statusDialog').show()"
+					onsuccess="PF('statusDialog').hide()" />
+				<p:dialog modal="true" widgetVar="statusDialog" header="Loading"
+					draggable="false" closable="false">
+					<p:graphicImage
+						value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />
+				</p:dialog>
+
+				<!-- Expired session -->
+				<p:idleMonitor onactive="PF('sessionTimeOutDialog').show();"
+					timeout="#{session.maxInactiveInterval * 1000}" />
+				<p:dialog modal="true" widgetVar="sessionTimeOutDialog"
+					header="Expired session" draggable="false" closable="false">
+					<h:outputText value="The session is finished" />
+					<input id="confirmBackToLogin" type="button" value="Sign in"
+						onclick="window.location='#{facesContext.externalContext.requestContextPath}/index.jsp';" />
+				</p:dialog>
+
+
+				<h:form id="formDialog">
+					<p:messages id="msg" autoUpdate="true" showDetail="false"
+						closable="true" />
+					<p:growl id="men" autoUpdate="true" showDetail="false" />
+					<p:fieldset legend="Nueva herramienta" toggleable="true"
+						collapsed="true" toggleSpeed="500">
+						<p:panel id="panelNuevaHerramientaREA" header="Nueva Herramienta">
+
+							<h:panelGrid columns="2" id="panelGrid">
+
+
+								<h:outputLabel value="Título o Descripción de Herramienta: " />
+								<p:inputTextarea id="txtTituloHerramienta" maxlength="2500"
+									autoResize="false" style="width:700px; height:70px"
+									binding="#{herramientaView.txtTituloHerramienta}" />
+
+								<h:outputLabel value="URL de ubicación de la Herramienta: " />
+								<p:inputTextarea id="txtURL" maxlength="2500" autoResize="false"
+									style="width:700px; height:70px"
+									binding="#{herramientaView.txtURL}" />
+
+								<h:outputLabel value="Tipo de Herramienta: " />
+								<p:selectOneMenu id="somTipoHerramienta" style="width:450px"
+									value="#{herramientaView.somTiposDeHerramientas}">
+									<f:selectItem itemLabel="Seleccione el Tipo de Herramienta"
+										itemValue="0" />
+									<f:selectItems
+										value="#{herramientaView.losTiposDeHerramientas}" />
+								</p:selectOneMenu>
+
+
+							</h:panelGrid>
+						</p:panel>
+						<p:panel id="panelBotones">
+							<div align="center">
+								<p:commandButton id="btnGuardarNuevaHerramienta"
+									binding="#{herramientaView.btnGuardarNuevaHerramienta}"
+									value="Guardar nueva Herramienta"
+									action="#{herramientaView.guardarNuevaHerramienta()}"
+									icon="ui-icon-disk"
+									update="panelNuevaHerramientaREA,msg,panelBotones,panelMisHerramientas" />
+								<p:commandButton id="btnLimpiarPantallaNuevaHerramienta"
+									binding="#{herramientaView.btnLimpiarPantallaNuevaHerramienta}"
+									value="Limpiar pantalla"
+									action="#{herramientaView.limpiarPantalla()}"
+									icon="ui-icon-trash"
+									update="panelNuevaHerramientaREA,msg,panelBotones" />
+							</div>
+						</p:panel>
+					</p:fieldset>
+
+					<p:fieldset legend="Mis herramientas" toggleable="true"
+						collapsed="true" toggleSpeed="500">
+						<p:panel id="panelMisHerramientas"
+							header="Estas son las herramientas que has publicado a los estudiantes">
+							<p:dataTable id="tablasMisHerramientas"
+								emptyMessage="Actualmente no has creado herramientas"
+								value="#{herramientaView.herramientasDelUsuario}"
+								var="herramienta">
+								<p:column headerText="Fecha publicación"
+									style="width:150px;text-align: center">
+									<p:outputLabel value="#{herramienta.fechaPublicacionString}" />
+								</p:column>
+
+								<p:column headerText="Descripcion Herramienta"
+									style="width:300px;text-align: center">
+									<p:outputLabel value="#{herramienta.descripcionHerramienta}" />
+								</p:column>
+
+								<p:column headerText="Estado"
+									style="width:70px;text-align: center">
+									<p:outputLabel value="#{herramienta.estadoRegistro}" />
+								</p:column>
+
+								<p:column headerText="Link"
+									style="width:70px;text-align: center">
+									<p:link value="Abrir enlace" target="_blank"
+										href="#{herramienta.valorHerramienta}" />
+								</p:column>
+
+								<p:column headerText="Modificar ó Inactivar"
+									style="width:40px;text-align: center">
+									<p:commandButton id="btnModificarHerramienta"
+										actionListener="#{herramientaView.abrirDialogoMofificarHerramienta}"
+										title="Modificar Herramienta" icon="ui-icon-pencil"
+										update=":dialogModificarHerramienta, @([id$=panelMisHerramientas])">
+										<f:attribute name="herramientaModifica" value="#{herramienta}" />
+									</p:commandButton>
+									<p:commandButton id="btnEliminarHerramienta"
+										actionListener="#{herramientaView.activarInactivarHerramienta}"
+										title="Activar o Inactivar esta herramienta"
+										icon="ui-icon-transfer-e-w"
+										update="@([id$=panelMisHerramientas])">
+										<f:attribute name="herramientaInactivar"
+											value="#{herramienta}" />
+									</p:commandButton>
+								</p:column>
+
+							</p:dataTable>
+
+						</p:panel>
+					</p:fieldset>
+				</h:form>
+
+				<p:dialog id="dialogModificarHerramienta"
+					widgetVar="dlgModificarGrupo" appendTo="@(body)" draggable="true"
+					closable="false" resizable="false"
+					visible="#{herramientaView.showDlg}" modal="true" width="500">
+					<h:form>
+						<p:messages id="msgUpdate" />
+						<p:panel>
+							<h:panelGrid columns="2">
+								<h:outputText value="Título o Descripción de Herramienta: " />
+								<p:inputText id="txtModificaDescripcionHerramienta"
+									style="width:280px"
+									binding="#{herramientaView.txtModificaDescripcionHerramienta}" />
+
+								<h:outputText value="URL: " />
+								<p:inputText id="txtUrlHerramienta" style="width:280px"
+									disabled="true" binding="#{herramientaView.txtUrlHerramienta}" />
+
+							</h:panelGrid>
+						</p:panel>
+						<p:panel>
+							<div align="center">
+								<p:commandButton id="btnUpdate" value="Modificar"
+									action="#{herramientaView.modificarHerramienta()}"
+									icon="ui-icon-refresh"
+									update="@([id$=dialogModificarHerramienta]), @([id$=panelMisHerramientas])" />
+								<p:commandButton id="btnSalir" value="Salir"
+									action="#{herramientaView.cerrarDialogoModificarDescripcionHerramienta()}"
+									icon="ui-icon-close"
+									update="@([id$=dialogModificarHerramienta]), @([id$=formDialog]), @([id$=panelMisHerramientas])" />
+							</div>
+						</p:panel>
+					</h:form>
+				</p:dialog>
+			</f:view>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

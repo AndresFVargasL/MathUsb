@@ -1,0 +1,96 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>.::REGISTRO DOCENTES MATH USB::.</title>
+	<link REL="SHORTCUT ICON"
+		href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/icon.png" />
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/css/style.css" />
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/css/stylelogin.css" />	
+</h:head>
+
+<h:body>
+	
+			<f:view>
+				<p:ajaxStatus onstart="PF('statusDialog').show()"
+					onsuccess="PF('statusDialog').hide()" />
+				<p:dialog modal="true" widgetVar="statusDialog" header="Loading"
+					draggable="false" closable="false">
+					<p:graphicImage
+						value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />
+				</p:dialog>
+
+				<!-- Expired session -->
+				<p:idleMonitor onactive="PF('sessionTimeOutDialog').show();"
+					timeout="#{session.maxInactiveInterval * 1000}" />
+				<p:dialog modal="true" widgetVar="sessionTimeOutDialog"
+					header="Expired session" draggable="false" closable="false">
+					<h:outputText value="The session is finished" />
+					<input id="confirmBackToLogin" type="button" value="Sign in"
+						onclick="window.location='#{facesContext.externalContext.requestContextPath}/index.jsp';" />
+				</p:dialog>
+
+				<div class="wrapper">
+				<h:form id="formDialog" class="form-signin" >
+					<p:messages id="msg" autoUpdate="true" showDetail="false" closable="true" />
+					<p:growl id="men" autoUpdate="true" showDetail="false"/>
+					<div align="center">
+					<h1 class="form-signin-heading" align="center">Registro de Docentes</h1>
+					<p:panel id="panelRegistroDocente" style="border: none;">
+						<h:panelGrid columns="2" id="panelGrid">
+							<h:outputText id="lblNombreDocente" value="Nombres:" />
+							<p:inputText id="txtNombreDocente" 
+								binding="#{usuarioView.txtNombreDocente}" />
+							
+							<h:outputText id="lblApellidoDocente" value="Apellidos:" />
+							<p:inputText id="txtApellidoDocente"
+								binding="#{usuarioView.txtApellidoDocente}" />
+								
+							<h:outputText id="lblCodigoDocente" value="Código:" />
+							<p:inputText id="txtCodigoDocente"
+								binding="#{usuarioView.txtCodigoDocente}" />	
+							
+							<h:outputText id="lblEmailDocente" value="Correo electrónico:" />
+							<p:inputText id="txtEmailDocente"
+								binding="#{usuarioView.txtEmailDocente}" />
+							
+							<h:outputText id="lblPasswordDocente" value="Contraseña:" />
+							<p:password id="pswPasswordDocente"
+								binding="#{usuarioView.pswPasswordDocente}" />
+							
+							<h:outputText id="lblPasswordDocenteConfirma" value="Confirmar contraseña:" />
+							<p:password id="pswPasswordDocenteConfirma"
+								binding="#{usuarioView.pswPasswordDocenteConfirma}" />
+							
+						</h:panelGrid>
+					</p:panel>
+					
+					</div>
+					<div align="center">
+					<p:panel id="panelBotones" style="border: none;">
+						<div align="center">
+							<p:commandButton id="btnRegistrarDocente" binding="#{usuarioView.btnRegistrarDocente}"
+								value="Registrar Docente"
+								icon="ui-icon-check"
+								action="#{usuarioView.registrarNuevoDocente()}"
+								update="panelRegistroDocente,msg,panelBotones" />
+							<p:commandButton id="btnLimpiarPantallaRegistroDocente" binding="#{usuarioView.btnLimpiarPantallaRegistroDocente}" 
+								value="Limpiar Pantalla"
+								icon="ui-icon-trash"
+								action="#{usuarioView.limpiarPantallaRegistrarDocente()}"
+								update="panelRegistroDocente,msg,panelBotones" />
+						</div>
+					</p:panel>
+					</div>
+				</h:form>
+				</div>
+			</f:view>
+		
+</h:body>
+</html>

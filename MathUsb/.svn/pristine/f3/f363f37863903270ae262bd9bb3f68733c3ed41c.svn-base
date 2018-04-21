@@ -1,0 +1,943 @@
+package co.edu.usbcali.mathusb.modelo.control;
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.imageio.ImageIO;
+import javax.servlet.ServletContext;
+
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import co.edu.usbcali.mathusb.dataaccess.dao.IDetalleEvaluacionDAO;
+import co.edu.usbcali.mathusb.dataaccess.dao.IEvaPregResDAO;
+import co.edu.usbcali.mathusb.dataaccess.dao.IEvaluacionDAO;
+import co.edu.usbcali.mathusb.dataaccess.dao.IUsuarioEvaluacionDAO;
+import co.edu.usbcali.mathusb.exceptions.ZMessManager;
+import co.edu.usbcali.mathusb.modelo.DetalleEvaluacion;
+import co.edu.usbcali.mathusb.modelo.EvaPregRes;
+import co.edu.usbcali.mathusb.modelo.Evaluacion;
+import co.edu.usbcali.mathusb.modelo.Grupo;
+import co.edu.usbcali.mathusb.modelo.Parametro;
+import co.edu.usbcali.mathusb.modelo.TipoEvaluacion;
+import co.edu.usbcali.mathusb.modelo.Usuario;
+import co.edu.usbcali.mathusb.modelo.UsuarioEvaluacion;
+import co.edu.usbcali.mathusb.modelo.dto.EvaluacionDTO;
+import co.edu.usbcali.mathusb.modelo.dto.EvaluacionReporteDTO;
+import co.edu.usbcali.mathusb.modelo.dto.GrupoDTO;
+import co.edu.usbcali.mathusb.modelo.dto.PreguntaDTO;
+import co.edu.usbcali.mathusb.utilities.Constantes;
+import co.edu.usbcali.mathusb.utilities.Constantes.REPORT_OUTPUT_TYPE;
+import co.edu.usbcali.mathusb.utilities.Utilities;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
+import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
+import net.sf.jasperreports.export.SimpleXlsxReportConfiguration;
+import net.sourceforge.jeuclid.MutableLayoutContext;
+import net.sourceforge.jeuclid.context.LayoutContextImpl;
+import net.sourceforge.jeuclid.context.Parameter;
+import net.sourceforge.jeuclid.converter.Converter;
+
+/**
+ * @author Zathura Code Generator http://code.google.com/p/zathura/
+ *         www.zathuracode.org
+ *
+ */
+@Scope("singleton")
+@Service("EvaluacionLogic")
+public class EvaluacionLogic implements IEvaluacionLogic {
+	private static final Logger log = LoggerFactory.getLogger(EvaluacionLogic.class);
+
+	/**
+	 * DAO injected by Spring that manages Evaluacion entities
+	 *
+	 */
+	@Autowired
+	private IEvaluacionDAO evaluacionDAO;
+
+	/**
+	 * DAO injected by Spring that manages DetalleEvaluacion entities
+	 *
+	 */
+	@Autowired
+	private IDetalleEvaluacionDAO detalleEvaluacionDAO;
+
+	/**
+	 * DAO injected by Spring that manages EvaPregRes entities
+	 *
+	 */
+	@Autowired
+	private IEvaPregResDAO evaPregResDAO;
+
+	/**
+	 * DAO injected by Spring that manages UsuarioEvaluacion entities
+	 *
+	 */
+	@Autowired
+	private IUsuarioEvaluacionDAO usuarioEvaluacionDAO;
+
+	/**
+	 * Logic injected by Spring that manages Grupo entities
+	 *
+	 */
+	@Autowired
+	IGrupoLogic logicGrupo1;
+
+	/**
+	 * Logic injected by Spring that manages TipoEvaluacion entities
+	 *
+	 */
+	@Autowired
+	ITipoEvaluacionLogic logicTipoEvaluacion2;
+	
+	@Autowired
+	IDetalleEvaluacionLogic detalleEvaluacionLogic;
+	
+	@Autowired
+	IUsuarioEvaluacionLogic usuarioEvaluacionLogic;
+	
+	@Autowired
+	private IParametroLogic parametroLogic;
+
+	@Transactional(readOnly = true)
+	public List<Evaluacion> getEvaluacion() throws Exception {
+		log.debug("finding all Evaluacion instances");
+
+		List<Evaluacion> list = new ArrayList<Evaluacion>();
+
+		try {
+			list = evaluacionDAO.findAll();
+		} catch (Exception e) {
+			log.error("finding all Evaluacion failed", e);
+			throw new ZMessManager().new GettingException(ZMessManager.ALL + "Evaluacion");
+		} finally {
+		}
+
+		return list;
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void saveEvaluacion(Evaluacion entity) throws Exception {
+		log.debug("saving Evaluacion instance");
+
+		try {
+			if (entity.getGrupo() == null) {
+				throw new ZMessManager().new ForeignException("grupo");
+			}
+
+			if (entity.getTipoEvaluacion() == null) {
+				throw new ZMessManager().new ForeignException("tipoEvaluacion");
+			}
+
+			if (entity.getEstadoRegistro() == null) {
+				throw new ZMessManager().new EmptyFieldException("estadoRegistro");
+			}
+
+			if ((entity.getEstadoRegistro() != null)
+					&& (Utilities.checkWordAndCheckWithlength(entity.getEstadoRegistro(), 1) == false)) {
+				throw new ZMessManager().new NotValidFormatException("estadoRegistro");
+			}
+
+			if (entity.getEvalId() == null) {
+				throw new ZMessManager().new EmptyFieldException("evalId");
+			}
+
+			if (entity.getGrupo().getGrupId() == null) {
+				throw new ZMessManager().new EmptyFieldException("grupId_Grupo");
+			}
+
+			if (entity.getTipoEvaluacion().getTievId() == null) {
+				throw new ZMessManager().new EmptyFieldException("tievId_TipoEvaluacion");
+			}
+
+			if (getEvaluacion(entity.getEvalId()) != null) {
+				throw new ZMessManager(ZMessManager.ENTITY_WITHSAMEKEY);
+			}
+
+			evaluacionDAO.save(entity);
+
+			log.debug("save Evaluacion successful");
+		} catch (Exception e) {
+			log.error("save Evaluacion failed", e);
+			throw e;
+		} finally {
+		}
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void deleteEvaluacion(Evaluacion entity) throws Exception {
+		log.debug("deleting Evaluacion instance");
+
+		if (entity == null) {
+			throw new ZMessManager().new NullEntityExcepcion("Evaluacion");
+		}
+
+		if (entity.getEvalId() == null) {
+			throw new ZMessManager().new EmptyFieldException("evalId");
+		}
+
+		List<DetalleEvaluacion> detalleEvaluacions = null;
+		List<EvaPregRes> evaPregReses = null;
+		List<UsuarioEvaluacion> usuarioEvaluacions = null;
+
+		try {
+			detalleEvaluacions = detalleEvaluacionDAO.findByProperty("evaluacion.evalId", entity.getEvalId());
+
+			if (Utilities.validationsList(detalleEvaluacions) == true) {
+				throw new ZMessManager().new DeletingException("detalleEvaluacions");
+			}
+
+			evaPregReses = evaPregResDAO.findByProperty("evaluacion.evalId", entity.getEvalId());
+
+			if (Utilities.validationsList(evaPregReses) == true) {
+				throw new ZMessManager().new DeletingException("evaPregReses");
+			}
+
+			usuarioEvaluacions = usuarioEvaluacionDAO.findByProperty("evaluacion.evalId", entity.getEvalId());
+
+			if (Utilities.validationsList(usuarioEvaluacions) == true) {
+				throw new ZMessManager().new DeletingException("usuarioEvaluacions");
+			}
+
+			evaluacionDAO.delete(entity);
+
+			log.debug("delete Evaluacion successful");
+		} catch (Exception e) {
+			log.error("delete Evaluacion failed", e);
+			throw e;
+		} finally {
+		}
+	}
+
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void updateEvaluacion(Evaluacion entity) throws Exception {
+		log.debug("updating Evaluacion instance");
+
+		try {
+			if (entity == null) {
+				throw new ZMessManager().new NullEntityExcepcion("Evaluacion");
+			}
+
+			if (entity.getGrupo() == null) {
+				throw new ZMessManager().new ForeignException("grupo");
+			}
+
+			if (entity.getTipoEvaluacion() == null) {
+				throw new ZMessManager().new ForeignException("tipoEvaluacion");
+			}
+
+			if (entity.getEstadoRegistro() == null) {
+				throw new ZMessManager().new EmptyFieldException("estadoRegistro");
+			}
+
+			if ((entity.getEstadoRegistro() != null)
+					&& (Utilities.checkWordAndCheckWithlength(entity.getEstadoRegistro(), 1) == false)) {
+				throw new ZMessManager().new NotValidFormatException("estadoRegistro");
+			}
+
+			if (entity.getEvalId() == null) {
+				throw new ZMessManager().new EmptyFieldException("evalId");
+			}
+
+			if (entity.getGrupo().getGrupId() == null) {
+				throw new ZMessManager().new EmptyFieldException("grupId_Grupo");
+			}
+
+			if (entity.getTipoEvaluacion().getTievId() == null) {
+				throw new ZMessManager().new EmptyFieldException("tievId_TipoEvaluacion");
+			}
+
+			evaluacionDAO.update(entity);
+
+			log.debug("update Evaluacion successful");
+		} catch (Exception e) {
+			log.error("update Evaluacion failed", e);
+			throw e;
+		} finally {
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public List<EvaluacionDTO> getDataEvaluacion() throws Exception {
+		try {
+			List<Evaluacion> evaluacion = evaluacionDAO.findAll();
+
+			List<EvaluacionDTO> evaluacionDTO = new ArrayList<EvaluacionDTO>();
+
+			for (Evaluacion evaluacionTmp : evaluacion) {
+				EvaluacionDTO evaluacionDTO2 = new EvaluacionDTO();
+
+				evaluacionDTO2.setEvalId(evaluacionTmp.getEvalId());
+				evaluacionDTO2.setEstadoRegistro(
+						(evaluacionTmp.getEstadoRegistro() != null) ? evaluacionTmp.getEstadoRegistro() : null);
+
+				if (evaluacionTmp.getGrupo() != null) {
+					evaluacionDTO2.setGrupId_Grupo(evaluacionTmp.getGrupo().getGrupId());
+				} else {
+					evaluacionDTO2.setGrupId_Grupo(null);
+				}
+
+				evaluacionDTO2.setTievId_TipoEvaluacion((evaluacionTmp.getTipoEvaluacion().getTievId() != null)
+						? evaluacionTmp.getTipoEvaluacion().getTievId() : null);
+				evaluacionDTO.add(evaluacionDTO2);
+			}
+
+			return evaluacionDTO;
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public Evaluacion getEvaluacion(Long evalId) throws Exception {
+		log.debug("getting Evaluacion instance");
+
+		Evaluacion entity = null;
+
+		try {
+			entity = evaluacionDAO.findById(evalId);
+		} catch (Exception e) {
+			log.error("get Evaluacion failed", e);
+			throw new ZMessManager().new FindingException("Evaluacion");
+		} finally {
+		}
+
+		return entity;
+	}
+
+	@Transactional(readOnly = true)
+	public List<Evaluacion> findPageEvaluacion(String sortColumnName, boolean sortAscending, int startRow,
+			int maxResults) throws Exception {
+		List<Evaluacion> entity = null;
+
+		try {
+			entity = evaluacionDAO.findPage(sortColumnName, sortAscending, startRow, maxResults);
+		} catch (Exception e) {
+			throw new ZMessManager().new FindingException("Evaluacion Count");
+		} finally {
+		}
+
+		return entity;
+	}
+
+	@Transactional(readOnly = true)
+	public Long findTotalNumberEvaluacion() throws Exception {
+		Long entity = null;
+
+		try {
+			entity = evaluacionDAO.count();
+		} catch (Exception e) {
+			throw new ZMessManager().new FindingException("Evaluacion Count");
+		} finally {
+		}
+
+		return entity;
+	}
+
+	/**
+	 *
+	 * @param varibles
+	 *            este arreglo debera tener:
+	 *
+	 *            [0] = String variable = (String) varibles[i]; representa como
+	 *            se llama la variable en el pojo
+	 *
+	 *            [1] = Boolean booVariable = (Boolean) varibles[i + 1];
+	 *            representa si el valor necesita o no ''(comillas simples)usado
+	 *            para campos de tipo string
+	 *
+	 *            [2] = Object value = varibles[i + 2]; representa el valor que
+	 *            se va a buscar en la BD
+	 *
+	 *            [3] = String comparator = (String) varibles[i + 3]; representa
+	 *            que tipo de busqueda voy a hacer.., ejemplo: where
+	 *            nombre=william o where nombre<>william, en este campo iria el
+	 *            tipo de comparador que quiero si es = o <>
+	 *
+	 *            Se itera de 4 en 4..., entonces 4 registros del arreglo
+	 *            representan 1 busqueda en un campo, si se ponen mas pues el
+	 *            continuara buscando en lo que se le ingresen en los otros 4
+	 *
+	 *
+	 * @param variablesBetween
+	 *
+	 *            la diferencia son estas dos posiciones
+	 *
+	 *            [0] = String variable = (String) varibles[j]; la variable ne
+	 *            la BD que va a ser buscada en un rango
+	 *
+	 *            [1] = Object value = varibles[j + 1]; valor 1 para buscar en
+	 *            un rango
+	 *
+	 *            [2] = Object value2 = varibles[j + 2]; valor 2 para buscar en
+	 *            un rango ejempolo: a > 1 and a < 5 --> 1 seria value y 5 seria
+	 *            value2
+	 *
+	 *            [3] = String comparator1 = (String) varibles[j + 3];
+	 *            comparador 1 ejemplo: a comparator1 1 and a < 5
+	 *
+	 *            [4] = String comparator2 = (String) varibles[j + 4];
+	 *            comparador 2 ejemplo: a comparador1>1 and a comparador2<5 (el
+	 *            original: a > 1 and a < 5) *
+	 * @param variablesBetweenDates(en
+	 *            este caso solo para mysql) [0] = String variable = (String)
+	 *            varibles[k]; el nombre de la variable que hace referencia a
+	 *            una fecha
+	 *
+	 *            [1] = Object object1 = varibles[k + 2]; fecha 1 a
+	 *            comparar(deben ser dates)
+	 *
+	 *            [2] = Object object2 = varibles[k + 3]; fecha 2 a
+	 *            comparar(deben ser dates)
+	 *
+	 *            esto hace un between entre las dos fechas.
+	 *
+	 * @return lista con los objetos que se necesiten
+	 * @throws Exception
+	 */
+	@Transactional(readOnly = true)
+	public List<Evaluacion> findByCriteria(Object[] variables, Object[] variablesBetween,
+			Object[] variablesBetweenDates) throws Exception {
+		List<Evaluacion> list = new ArrayList<Evaluacion>();
+		String where = new String();
+		String tempWhere = new String();
+
+		if (variables != null) {
+			for (int i = 0; i < variables.length; i++) {
+				if ((variables[i] != null) && (variables[i + 1] != null) && (variables[i + 2] != null)
+						&& (variables[i + 3] != null)) {
+					String variable = (String) variables[i];
+					Boolean booVariable = (Boolean) variables[i + 1];
+					Object value = variables[i + 2];
+					String comparator = (String) variables[i + 3];
+
+					if (booVariable.booleanValue()) {
+						tempWhere = (tempWhere.length() == 0)
+								? ("(model." + variable + " " + comparator + " \'" + value + "\' )")
+								: (tempWhere + " AND (model." + variable + " " + comparator + " \'" + value + "\' )");
+					} else {
+						tempWhere = (tempWhere.length() == 0)
+								? ("(model." + variable + " " + comparator + " " + value + " )")
+								: (tempWhere + " AND (model." + variable + " " + comparator + " " + value + " )");
+					}
+				}
+
+				i = i + 3;
+			}
+		}
+
+		if (variablesBetween != null) {
+			for (int j = 0; j < variablesBetween.length; j++) {
+				if ((variablesBetween[j] != null) && (variablesBetween[j + 1] != null)
+						&& (variablesBetween[j + 2] != null) && (variablesBetween[j + 3] != null)
+						&& (variablesBetween[j + 4] != null)) {
+					String variable = (String) variablesBetween[j];
+					Object value = variablesBetween[j + 1];
+					Object value2 = variablesBetween[j + 2];
+					String comparator1 = (String) variablesBetween[j + 3];
+					String comparator2 = (String) variablesBetween[j + 4];
+					tempWhere = (tempWhere.length() == 0)
+							? ("(" + value + " " + comparator1 + " " + variable + " and " + variable + " " + comparator2
+									+ " " + value2 + " )")
+							: (tempWhere + " AND (" + value + " " + comparator1 + " " + variable + " and " + variable
+									+ " " + comparator2 + " " + value2 + " )");
+				}
+
+				j = j + 4;
+			}
+		}
+
+		if (variablesBetweenDates != null) {
+			for (int k = 0; k < variablesBetweenDates.length; k++) {
+				if ((variablesBetweenDates[k] != null) && (variablesBetweenDates[k + 1] != null)
+						&& (variablesBetweenDates[k + 2] != null)) {
+					String variable = (String) variablesBetweenDates[k];
+					Object object1 = variablesBetweenDates[k + 1];
+					Object object2 = variablesBetweenDates[k + 2];
+					String value = null;
+					String value2 = null;
+
+					try {
+						Date date1 = (Date) object1;
+						Date date2 = (Date) object2;
+						value = Utilities.formatDateWithoutTimeInAStringForBetweenWhere(date1);
+						value2 = Utilities.formatDateWithoutTimeInAStringForBetweenWhere(date2);
+					} catch (Exception e) {
+						list = null;
+						throw e;
+					}
+
+					tempWhere = (tempWhere.length() == 0)
+							? ("(model." + variable + " between \'" + value + "\' and \'" + value2 + "\')")
+							: (tempWhere + " AND (model." + variable + " between \'" + value + "\' and \'" + value2
+									+ "\')");
+				}
+
+				k = k + 2;
+			}
+		}
+
+		if (tempWhere.length() == 0) {
+			where = null;
+		} else {
+			where = "(" + tempWhere + ")";
+		}
+
+		try {
+			list = evaluacionDAO.findByCriteria(where);
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+		}
+
+		return list;
+	}
+
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void guardarNuevaEvaluacion(Evaluacion evaluacion, DetalleEvaluacion detalleEvaluacion, Usuario usuario)
+			throws Exception {
+
+		// Guardar Evaluacion
+		evaluacion.setEvalId(null);
+		if (evaluacion.getEstadoRegistro().trim().equals("") == true) {
+			throw new Exception("No se sabe si el documento está Activo/Inactivo");
+		}
+		if (evaluacion.getTipoEvaluacion() == null) {
+			throw new Exception("No se ha seleccionado un tipo de documento");
+		}
+		
+		if (evaluacion.getGrupo()==null){
+			throw new Exception("No se ha seleccionado un Grupo");
+		}
+
+		// Guardar DetalleEvaluacion
+		detalleEvaluacion.setDeevId(null);
+		detalleEvaluacion.setEvaluacion(evaluacion);
+		boolean datosOk = detalleEvaluacionLogic.detalleEvaluacionIsOk(detalleEvaluacion);
+		if (datosOk) {
+			SimpleDateFormat simpleDateFormatSinHora = new SimpleDateFormat("dd/MM/yyyy");
+			SimpleDateFormat simpleDateFormatConHora = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			
+			String fechaInicioString = simpleDateFormatSinHora.format(detalleEvaluacion.getFechaInicioPublicacion())+" 00:00:00";
+			detalleEvaluacion.setFechaInicioPublicacion(simpleDateFormatConHora.parse(fechaInicioString));
+
+			String fechaFinString = simpleDateFormatSinHora.format(detalleEvaluacion.getFechaFinPublicacion())+" 23:59:59";
+			detalleEvaluacion.setFechaFinPublicacion(simpleDateFormatConHora.parse(fechaFinString));
+			
+			evaluacionDAO.save(evaluacion);
+			detalleEvaluacionLogic.saveDetalleEvaluacion(detalleEvaluacion);
+
+			// Registrar evaluacion al usuario
+			UsuarioEvaluacion usuarioEvaluacion = new UsuarioEvaluacion();
+			usuarioEvaluacion.setUsevId(null);
+			usuarioEvaluacion.setEvaluacion(evaluacion);
+			usuarioEvaluacion.setUsuario(usuario);
+
+			usuarioEvaluacionLogic.saveUsuarioEvaluacion(usuarioEvaluacion);
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<EvaluacionDTO> obtenerListaEvaluacionesDelDocente(Long idDocente) throws Exception {
+		if (idDocente == null) {
+			throw new Exception("El código del docente no puede ser nulo");
+		}
+
+		if (idDocente.equals(0) == true) {
+			throw new Exception("El código del docente no puede ser 0 (cero)");
+		}
+
+		List<EvaluacionDTO> listaEvaluacionDTO = new ArrayList<>();
+		List<Evaluacion> listaEvaluacion = evaluacionDAO.obtenerEvaluacionesDadoIdUsuario(idDocente);
+		for (Evaluacion evaluacion : listaEvaluacion) {
+			EvaluacionDTO evaluacionDTO = new EvaluacionDTO();
+			evaluacionDTO.setEvalId(evaluacion.getEvalId());
+			
+			if(evaluacion.getEstadoRegistro().trim().equals("A")){
+				evaluacionDTO.setEstadoRegistro("Activo");
+			}else{
+				evaluacionDTO.setEstadoRegistro("Inactivo");
+			}
+			TipoEvaluacion tipoEvaluacion = logicTipoEvaluacion2
+					.getTipoEvaluacion(evaluacion.getTipoEvaluacion().getTievId());
+			evaluacionDTO.setTipoEvaluacion(tipoEvaluacion.getDescripcionTipoEvaluacion());
+			
+			evaluacionDTO.setTievId_TipoEvaluacion(evaluacion.getTipoEvaluacion().getTievId());
+			
+			GrupoDTO grupoDTO = logicGrupo1.obtenerGrupoDTODadoGrupId(evaluacion.getGrupo().getGrupId());
+			evaluacionDTO.setGrupId_Grupo(grupoDTO.getGrupId());
+			evaluacionDTO.setNombreGrupoYAsignatura(grupoDTO.getDescripcionGrupo()+" - "+grupoDTO.getNombreAsignatura());
+			DetalleEvaluacion detalleEvaluacion = detalleEvaluacionLogic
+					.obtenerDetalleEvaluacionDadoIdEvaluacion(evaluacion);
+			evaluacionDTO.setAsunto(detalleEvaluacion.getAsunto());
+			evaluacionDTO.setCorte(detalleEvaluacion.getCorte());
+			evaluacionDTO.setFechaCreacion(detalleEvaluacion.getFechaCreacion());
+			evaluacionDTO.setFechaFinPublicacion(detalleEvaluacion.getFechaFinPublicacion());
+			evaluacionDTO.setFechaInicioPublicacion(detalleEvaluacion.getFechaInicioPublicacion());
+			evaluacionDTO.setFechaFinPublicacionString(obtenerFechaDecenteDadoDate(detalleEvaluacion.getFechaFinPublicacion()));
+			evaluacionDTO.setFechaInicioPublicacionString(obtenerFechaDecenteDadoDate(detalleEvaluacion.getFechaInicioPublicacion()));
+
+			listaEvaluacionDTO.add(evaluacionDTO);
+		}
+		return listaEvaluacionDTO;
+	}
+
+	@Override
+	public String obtenerFechaDecenteDadoDate(Date fechaHora) throws Exception {
+		log.info("Convirtiendo fecha "+fechaHora);
+		
+		String[] meses = new String[13];
+		meses[0] = "";
+		meses[1] = "Enero";
+		meses[2] = "Febrero";
+		meses[3] = "Marzo";
+		meses[4] = "Abril";
+		meses[5] = "Mayo";
+		meses[6] = "Junio";
+		meses[7] = "Julio";
+		meses[8] = "Agosto";
+		meses[9] = "Septiembre";
+		meses[10] = "Octubre";
+		meses[11] = "Noviembre";
+		meses[12] = "Diciembre";
+		
+		String[] diasDeSemana = new String[8];
+		diasDeSemana[0] = "";
+		diasDeSemana[1] = "Lunes";
+		diasDeSemana[2] = "Martes";
+		diasDeSemana[3] = "Miércoles";
+		diasDeSemana[4] = "Jueves";
+		diasDeSemana[5] = "Viernes";
+		diasDeSemana[6] = "Sábado";
+		diasDeSemana[7] = "Domingo";
+
+		
+		SimpleDateFormat sdfDia = new SimpleDateFormat("dd");
+		SimpleDateFormat sdfMes = new SimpleDateFormat("MM");
+		SimpleDateFormat sdfAnho = new SimpleDateFormat("yyyy");
+		SimpleDateFormat sdfDiaDeSemana = new SimpleDateFormat("u");
+		
+		
+		String dia = sdfDia.format(fechaHora);
+		int numMes = Integer.parseInt(sdfMes.format(fechaHora));
+		String mes = meses[numMes];
+		String anho = sdfAnho.format(fechaHora);
+		int numDiaDeSemana = Integer.parseInt(sdfDiaDeSemana.format(fechaHora));
+		String diaDeSemana = diasDeSemana[numDiaDeSemana];
+		
+		String fecha = diaDeSemana+", "+dia+" de "+mes+" del "+anho;
+		
+		log.info("fecha convertida: "+fecha);
+		return fecha;
+	}
+
+	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+	public void actualizarUnaEvaluacion(Evaluacion evaluacion, DetalleEvaluacion detalleEvaluacion) throws Exception {
+
+		// Actualizar Evaluacion
+		if (evaluacion.getEstadoRegistro().trim().equals("") == true) {
+			throw new Exception("No se sabe si el documento está Activo o Inactivo");
+		}
+		if (evaluacion.getTipoEvaluacion() == null) {
+			throw new Exception("No se ha seleccionado un tipo de documento");
+		}
+		
+		if (evaluacion.getGrupo()==null){
+			throw new Exception("No se ha seleccionado un Grupo");
+		}
+
+		// Guardar DetalleEvaluacion
+		detalleEvaluacion.setEvaluacion(evaluacion);
+		boolean datosOk = detalleEvaluacionLogic.detalleEvaluacionIsOk(detalleEvaluacion);
+		if (datosOk) {
+			SimpleDateFormat simpleDateFormatSinHora = new SimpleDateFormat("dd/MM/yyyy");
+			SimpleDateFormat simpleDateFormatConHora = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			
+			String fechaInicioString = simpleDateFormatSinHora.format(detalleEvaluacion.getFechaInicioPublicacion())+" 00:00:00";
+			detalleEvaluacion.setFechaInicioPublicacion(simpleDateFormatConHora.parse(fechaInicioString));
+
+			String fechaFinString = simpleDateFormatSinHora.format(detalleEvaluacion.getFechaFinPublicacion())+" 23:59:59";
+			detalleEvaluacion.setFechaFinPublicacion(simpleDateFormatConHora.parse(fechaFinString));
+			
+			evaluacionDAO.update(evaluacion);
+			detalleEvaluacionLogic.updateDetalleEvaluacion(detalleEvaluacion);
+
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<EvaluacionDTO> obtenerEvaluacionesDelGrupo(Long idGrupo)
+			throws Exception {
+		if(idGrupo == null){
+			throw new Exception("No ha llegado el id del grupo");
+		}
+		Grupo grupo = logicGrupo1.getGrupo(idGrupo);
+		if(grupo == null){
+			throw new Exception("El grupo con id "+idGrupo+" No existe");
+		}
+		List<EvaluacionDTO> listaEvaluacionDTO = new ArrayList<>();
+		List<Evaluacion> listaEvaluacion = evaluacionDAO.obtenerEvaluacionesDelGrupo(idGrupo);
+		for (Evaluacion evaluacion : listaEvaluacion) {
+			EvaluacionDTO evaluacionDTO = new EvaluacionDTO();
+			evaluacionDTO.setEvalId(evaluacion.getEvalId());
+			
+			if(evaluacion.getEstadoRegistro().trim().equals("A")){
+				evaluacionDTO.setEstadoRegistro("Activo");
+			}else{
+				evaluacionDTO.setEstadoRegistro("Inactivo");
+			}
+			TipoEvaluacion tipoEvaluacion = logicTipoEvaluacion2
+					.getTipoEvaluacion(evaluacion.getTipoEvaluacion().getTievId());
+			evaluacionDTO.setTipoEvaluacion(tipoEvaluacion.getDescripcionTipoEvaluacion());
+			
+			evaluacionDTO.setTievId_TipoEvaluacion(evaluacion.getTipoEvaluacion().getTievId());
+			
+			GrupoDTO grupoDTO = logicGrupo1.obtenerGrupoDTODadoGrupId(evaluacion.getGrupo().getGrupId());
+			evaluacionDTO.setGrupId_Grupo(grupoDTO.getGrupId());
+			evaluacionDTO.setNombreGrupoYAsignatura(grupoDTO.getDescripcionGrupo()+" - "+grupoDTO.getNombreAsignatura());
+			DetalleEvaluacion detalleEvaluacion = detalleEvaluacionLogic
+					.obtenerDetalleEvaluacionDadoIdEvaluacion(evaluacion);
+			evaluacionDTO.setAsunto(detalleEvaluacion.getAsunto());
+			evaluacionDTO.setCorte(detalleEvaluacion.getCorte());
+			evaluacionDTO.setFechaCreacion(detalleEvaluacion.getFechaCreacion());
+			evaluacionDTO.setFechaFinPublicacion(detalleEvaluacion.getFechaFinPublicacion());
+			evaluacionDTO.setFechaInicioPublicacion(detalleEvaluacion.getFechaInicioPublicacion());
+			evaluacionDTO.setFechaFinPublicacionString(obtenerFechaDecenteDadoDate(detalleEvaluacion.getFechaFinPublicacion()));
+			evaluacionDTO.setFechaInicioPublicacionString(obtenerFechaDecenteDadoDate(detalleEvaluacion.getFechaInicioPublicacion()));
+
+			listaEvaluacionDTO.add(evaluacionDTO);
+		}
+		
+		// TODO Auto-generated method stub
+		return listaEvaluacionDTO;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<EvaluacionDTO> obtenerEvaluacionesDelGrupoDisponiblesEnFechaHoy(Long idGrupo) throws Exception {
+		if(idGrupo == null){
+			throw new Exception("No ha llegado el id del grupo");
+		}
+		Grupo grupo = logicGrupo1.getGrupo(idGrupo);
+		if(grupo == null){
+			throw new Exception("El grupo con id "+idGrupo+" No existe");
+		}
+		List<EvaluacionDTO> listaEvaluacionDTO = new ArrayList<>();
+		SimpleDateFormat simpleDateFormatConHora = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+		Date fecha = new Date();
+		String fechaHoyString = simpleDateFormatConHora.format(fecha);
+		
+		
+		List<Evaluacion> listaEvaluacion = evaluacionDAO.obtenerEvaluacionesDelGrupoDisponiblesEnFechaHoy(idGrupo);
+		for (Evaluacion evaluacion : listaEvaluacion) {
+			EvaluacionDTO evaluacionDTO = new EvaluacionDTO();
+			evaluacionDTO.setEvalId(evaluacion.getEvalId());
+			
+			if(evaluacion.getEstadoRegistro().trim().equals("A")){
+				evaluacionDTO.setEstadoRegistro("Activo");
+			}else{
+				evaluacionDTO.setEstadoRegistro("Inactivo");
+			}
+			TipoEvaluacion tipoEvaluacion = logicTipoEvaluacion2
+					.getTipoEvaluacion(evaluacion.getTipoEvaluacion().getTievId());
+			evaluacionDTO.setTipoEvaluacion(tipoEvaluacion.getDescripcionTipoEvaluacion());
+			
+			evaluacionDTO.setTievId_TipoEvaluacion(evaluacion.getTipoEvaluacion().getTievId());
+			
+			GrupoDTO grupoDTO = logicGrupo1.obtenerGrupoDTODadoGrupId(evaluacion.getGrupo().getGrupId());
+			evaluacionDTO.setGrupId_Grupo(grupoDTO.getGrupId());
+			evaluacionDTO.setNombreGrupoYAsignatura(grupoDTO.getDescripcionGrupo()+" - "+grupoDTO.getNombreAsignatura());
+			DetalleEvaluacion detalleEvaluacion = detalleEvaluacionLogic
+					.obtenerDetalleEvaluacionDadoIdEvaluacion(evaluacion);
+			evaluacionDTO.setAsunto(detalleEvaluacion.getAsunto());
+			evaluacionDTO.setCorte(detalleEvaluacion.getCorte());
+			evaluacionDTO.setFechaCreacion(detalleEvaluacion.getFechaCreacion());
+			evaluacionDTO.setFechaFinPublicacion(detalleEvaluacion.getFechaFinPublicacion());
+			evaluacionDTO.setFechaInicioPublicacion(detalleEvaluacion.getFechaInicioPublicacion());
+			evaluacionDTO.setFechaFinPublicacionString(obtenerFechaDecenteDadoDate(detalleEvaluacion.getFechaFinPublicacion()));
+			evaluacionDTO.setFechaInicioPublicacionString(obtenerFechaDecenteDadoDate(detalleEvaluacion.getFechaInicioPublicacion()));
+
+			listaEvaluacionDTO.add(evaluacionDTO);
+		}
+		return listaEvaluacionDTO;
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public ByteArrayInputStream generarReporteEvaluacion(REPORT_OUTPUT_TYPE reportOutputTye, Long eval_Id) throws Exception {
+		
+		try {
+
+			//SE CONSULTA LA RUTA BASE DE REPORTES 
+			
+			ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();
+			ServletContext sctx = (ServletContext) context.getContext();
+			URL resourceUrl = sctx.getResource("/Report/");
+			Parametro parametro = parametroLogic.getParametroPorDescripcion("urlReporte");
+			
+			if (parametro == null){
+				throw new Exception("No existe el parámetro urlReporte");
+			}
+			
+			parametro.setValorParametro(resourceUrl.getPath());
+			parametroLogic.updateParametro(parametro);
+			
+			
+			String rutaBaseReportes = parametro.getValorParametro();
+
+			//Se valida si la ruta existe
+			File fRutaBaseReportes = new File(rutaBaseReportes);
+			if (!fRutaBaseReportes.exists() || !fRutaBaseReportes.isDirectory() || !fRutaBaseReportes.canRead()){
+				throw new Exception("No existe la ruta base de reportes, no es un directorio o no se tiene acceso de lectura al directorio: " + fRutaBaseReportes.getPath());
+			}
+
+			//Se valida la ruta del reporte
+			File fReporte = new File(fRutaBaseReportes,"informeEvaluacion.jasper");
+			if (!fReporte.exists() || !fReporte.isFile() || !fReporte.canRead()){
+				throw new Exception("No existe la ruta del reporte, no es un archivo o no se tiene acceso de lectura al mismo: " + fReporte.getPath());
+			}
+
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+			//Se abre el reporte
+			InputStream inputStream = new FileInputStream(fReporte);
+
+			//Se llena el reporte
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("DIR_IMG", (fRutaBaseReportes.getPath().endsWith("/")?fRutaBaseReportes.getPath():(fRutaBaseReportes.getPath()+"/")));
+			
+			List<EvaluacionReporteDTO> evaluacionesAImprimir = new ArrayList<EvaluacionReporteDTO>();
+			evaluacionesAImprimir = evaluacionDAO.consutaEvaluacionParaReporte(eval_Id);
+			
+			if(evaluacionesAImprimir == null || evaluacionesAImprimir.size() == 0){
+				inputStream.close();
+				throw new Exception("No se encontraron evaluaciones disponibles activas para exportar en un documento tipo PDF");
+			}
+			
+			for (EvaluacionReporteDTO evaluacionReporteDTO : evaluacionesAImprimir) {
+				evaluacionReporteDTO.setPreguntaBI(getBufferedImage(evaluacionReporteDTO.getPreguntaMathXml()));
+			}
+
+			JasperPrint print = JasperFillManager.fillReport(inputStream, params, new JRBeanCollectionDataSource(evaluacionesAImprimir));
+
+			//Se exporta el reporte
+			if (reportOutputTye.equals(Constantes.REPORT_OUTPUT_TYPE.PDF)){
+				JRPdfExporter jrPdfExporter = new JRPdfExporter();
+
+				jrPdfExporter.setExporterInput(new SimpleExporterInput(print));
+				jrPdfExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(bos));
+				SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
+				jrPdfExporter.setConfiguration(configuration);
+
+				jrPdfExporter.exportReport();
+
+			}else if (reportOutputTye.equals(Constantes.REPORT_OUTPUT_TYPE.XLS)){
+
+				JRXlsExporter exporter = new JRXlsExporter();
+				exporter.setExporterInput(new SimpleExporterInput(print));
+				exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(bos));
+				SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
+				configuration.setOnePagePerSheet(false);
+				configuration.setDetectCellType(true);
+				configuration.setCollapseRowSpan(false);
+				exporter.setConfiguration(configuration);
+
+				exporter.exportReport();
+			}else if (reportOutputTye.equals(Constantes.REPORT_OUTPUT_TYPE.XLSX)){
+
+				JRXlsxExporter exporter = new JRXlsxExporter();
+				exporter.setExporterInput(new SimpleExporterInput(print));
+				exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(bos));
+				SimpleXlsxReportConfiguration configuration = new SimpleXlsxReportConfiguration();
+				configuration.setOnePagePerSheet(false);
+				configuration.setDetectCellType(true);
+				configuration.setCollapseRowSpan(false);
+				exporter.setConfiguration(configuration);
+
+				exporter.exportReport();
+			}
+
+			ByteArrayInputStream is = new ByteArrayInputStream(bos.toByteArray());
+			
+			return is;
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	public BufferedImage getBufferedImage(String descripcionPregunta) throws Exception {
+		try {
+			log.info("Obteniendo BufferedImage a las: " + new Date());
+			Parametro ruta = parametroLogic.getParametroPorDescripcion("rutaImagenPreguntaForo");
+			String rutaString = ruta.getValorParametro();
+			
+			//Aquí se debe poner la ruta en un string
+			
+			File fInput = new File(rutaString+"input.html");
+			FileWriter fw = new FileWriter(fInput);
+			fw.write(descripcionPregunta);
+			fw.close();
+
+			File fOutput = new File(rutaString+"pregunta.jpg");
+
+			Converter converter = Converter.getInstance();
+
+			MutableLayoutContext params = new LayoutContextImpl(LayoutContextImpl.getDefaultLayoutContext());
+			params.setParameter(Parameter.MATHSIZE, 35f);
+
+			converter.convert(fInput, fOutput, "image/jpeg", params);
+			
+			FileInputStream fis = new FileInputStream(fOutput);
+			byte[] bytes = new byte[(int) fOutput.length()];
+			fis.read(bytes);
+			ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+			fis.close();
+
+
+			
+			BufferedImage bufferedImage = ImageIO.read(bais);
+			fInput.delete();
+			fOutput.delete();
+			log.info(" BufferedImage Obtenido a las: " + new Date());
+			return bufferedImage;
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Error obteniendo el BufferedImage, el eror fue: ", e.getMessage());
+		}
+		return null;
+	}
+	
+}

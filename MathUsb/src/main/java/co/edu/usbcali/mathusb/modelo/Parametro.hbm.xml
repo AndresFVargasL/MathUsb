@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Parametro" table="parametro" schema="public">
+        <id name="paramId" type="java.lang.Long">
+            <column name="param_id" />
+            <generator class="assigned" />
+        </id>
+        <property name="descripcionParametros" type="java.lang.String">
+            <column name="descripcion_parametros" length="2500" />
+        </property>
+        <property name="valorParametro" type="java.lang.String">
+            <column name="valor_parametro" length="2500" not-null="true" />
+        </property>
+        <property name="estadoRegistro" type="java.lang.String">
+            <column name="estado_registro" length="1" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

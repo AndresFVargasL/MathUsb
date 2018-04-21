@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.UsuarioEvaluacion" table="usuario_evaluacion" schema="public">
+        <id name="usevId" type="java.lang.Long">
+            <column name="usev_id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="usuario" class="co.edu.usbcali.mathusb.modelo.Usuario" fetch="select">
+            <column name="usua_id" />
+        </many-to-one>
+        <many-to-one name="evaluacion" class="co.edu.usbcali.mathusb.modelo.Evaluacion" fetch="select">
+            <column name="eval_id" />
+        </many-to-one>
+    </class>
+</hibernate-mapping>

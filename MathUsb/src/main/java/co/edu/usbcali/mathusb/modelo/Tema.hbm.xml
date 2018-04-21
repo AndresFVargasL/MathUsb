@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Tema" table="tema" schema="public">
+        <id name="temaId" type="java.lang.Long">
+            <column name="tema_id" />
+            <generator class="identity" />
+        </id>
+        <property name="descripcionTema" type="java.lang.String">
+            <column name="descripcion_tema" length="2500" not-null="true" />
+        </property>
+        <property name="tituloTema" type="java.lang.String">
+            <column name="titulo_tema" length="2500" />
+        </property>
+        <property name="palabrasClave" type="java.lang.String">
+            <column name="palabras_clave" length="2500" not-null="true" />
+        </property>
+        <set name="evaluacions" table="evaluacion" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="tema_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.Evaluacion" />
+        </set>
+    </class>
+</hibernate-mapping>

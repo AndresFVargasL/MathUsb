@@ -1,0 +1,126 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+	<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	</h:head>
+
+	<h:body>
+		  <ui:composition template="/WEB-INF/facelets/template.xhtml">	
+		 
+		 	<ui:define name="body">	
+				<f:view>
+					<p:ajaxStatus onstart="PF('statusDialog').show()" onsuccess="PF('statusDialog').hide()"/>               
+					<p:dialog modal="true" widgetVar="statusDialog" header="Loading"  draggable="false" closable="false">  
+   						<p:graphicImage value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />   
+					</p:dialog>
+					
+					<!-- Expired session -->
+					<p:idleMonitor onactive="PF('sessionTimeOutDialog').show();" timeout="#{session.maxInactiveInterval * 1000}" />
+					<p:dialog modal="true" widgetVar="sessionTimeOutDialog" header="Expired session"  draggable="false" closable="false">  
+	   					<h:outputText value="The session is finished" />
+	                 	<input id="confirmBackToLogin" 
+	                 		type="button" 
+	                 		value="Sign in"
+	                    	onclick="window.location='#{facesContext.externalContext.requestContextPath}/index.jsp';" />   
+					</p:dialog>
+					
+		  			<h:form id="frm">								  		
+						
+						<p:panel id="panelDataTableAsignatura" header="AsignaturaData">
+							<p:growl id="men"/>				
+							<p:dataTable value="#{asignaturaView.data}" var="asignatura"
+								paginator="true" rows="5">
+																										<p:column filterBy="#{asignatura.asigId}" sortBy="#{asignatura.asigId}" >
+										 <f:facet name="header">
+										<h:outputText value="asigId"/>
+										</f:facet>
+										 <h:outputText value="#{asignatura.asigId}"/>
+										 </p:column>
+			                    																									
+										<p:column filterBy="#{asignatura.nombreAsignatura}" sortBy="#{asignatura.nombreAsignatura}" >
+										 <f:facet name="header">
+										<h:outputText value="NombreAsignatura"/>
+										</f:facet>
+										 <h:outputText value="#{asignatura.nombreAsignatura}"/>
+										</p:column>   
+			                    			                    
+								<p:column headerText="Options">
+									<p:commandButton id="btnEdit" icon="ui-icon-pencil"
+										update=":dialogAsignatura"
+										actionListener="#{asignaturaView.action_edit}">
+										<f:attribute name="selectedAsignatura" value="#{asignatura}" />
+									</p:commandButton>
+									<p:commandButton id="btnDelete"									
+										title="Delete" actionListener="#{asignaturaView.action_delete_datatable}"
+										onclick="if(!confirm('Do you really want to delete this Entry?')){return false;}"
+										icon="ui-icon-trash" update="@form">
+										<f:attribute name="selectedAsignatura" value="#{asignatura}" />
+									</p:commandButton>
+								</p:column>									                    
+							</p:dataTable>	
+						</p:panel>
+						<p:panel id="panelBoton">
+							<div align="center">
+								<p:commandButton id="btnNew" value="New"
+									action="#{asignaturaView.action_openDlg()}" update=":dialogCreateAsignatura" />
+							</div>
+						</p:panel>						
+		   			</h:form>
+					<p:dialog id="dialogAsignatura" appendTo="@(body)" draggable="true"
+						closable="false" visible="#{asignaturaView.showDialog}" resizable="false"
+						modal="true" width="500">
+						<h:form id="formDialog">
+							<p:messages id="msg" />
+							<p:panel id="panelAsignatura" header="Asignatura">							
+							    <h:panelGrid columns="2" id="panelGrid" >
+																	 <h:outputText id="msgAsigId" value="AsigId"/>
+									 <p:inputText id="txtAsigId" binding="#{asignaturaView.txtAsigId}">
+									 <p:ajax update=":dialogAsignatura" listener="#{asignaturaView.listener_txtId}"/>
+									 </p:inputText>	
+																											
+																		<h:outputText id="msgNombreAsignatura" value=" NombreAsignatura"/>
+									<p:inputText id="txtNombreAsignatura" binding="#{asignaturaView.txtNombreAsignatura}"/>
+																		
+																    </h:panelGrid>
+							</p:panel>						   
+							<p:panel id="panelBotones">
+								<div align="center">					
+									<p:commandButton id="btnSave" binding="#{asignaturaView.btnSave}" value="Save" action="#{asignaturaView.action_modify()}" update=":dialogAsignatura" />
+									<p:commandButton id="btnClear" value="Clear" action="#{asignaturaView.action_clear()}" update=":dialogAsignatura" />
+									<p:commandButton id="btnExit" value="Exit" action="#{asignaturaView.action_closeDialog()}" update="@([id$=:frm]), @([id$=:dialogAsignatura])" />
+								</div>
+							</p:panel>					
+						</h:form>
+					</p:dialog>
+					
+					<p:dialog id="dialogCreateAsignatura" widgetVar="dlgCreateAsignatura" appendTo="@(body)" draggable="true" 
+					closable="false" resizable="false" visible="#{asignaturaView.showDlg}" modal="true" width="500">
+						<h:form>
+							<p:messages id="msgCreate"/>
+							<p:panel>
+								<h:panelGrid columns="2">
+									<h:outputText value="Nombre de Asignatura: *" />
+									<p:inputText id="txtCreateNombreAsignatura" style="width:280px" binding="#{asignaturaView.txtCreateNombreAsignatura}" />
+								</h:panelGrid>															
+							</p:panel>
+							<p:panel>
+								<div align="center" >
+									<p:commandButton id="btnCreate" value="Save" action="#{asignaturaView.action_create()}" update="@([id$=dialogCreateAsignatura])" />
+									<p:commandButton id="btnSalir" value="Exit" action="#{asignaturaView.action_closeDlg()}" update="@([id$=dialogCreateAsignatura]), @([id$=form]), @([id$=panelDataTableAsignatura])" />
+								</div>									
+							</p:panel>
+						</h:form>
+					</p:dialog>
+					
+					<script>
+					
+					</script>
+				</f:view>
+			</ui:define>		
+		</ui:composition>	
+	</h:body>	
+</html>	

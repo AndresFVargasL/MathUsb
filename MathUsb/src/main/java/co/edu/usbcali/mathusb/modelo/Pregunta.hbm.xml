@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 15/05/2016 07:07:19 PM by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Pregunta" table="pregunta" schema="public">
+        <id name="pregId" type="java.lang.Long">
+            <column name="preg_id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="tema" class="co.edu.usbcali.mathusb.modelo.Tema" fetch="select">
+            <column name="tema_id" />
+        </many-to-one>
+        <property name="descripcionPregunta" type="java.lang.String">
+            <column name="descripcion_pregunta" length="10485760" not-null="true" />
+        </property>
+        <set name="evaPregReses" table="eva_preg_res" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="preg_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.EvaPregRes" />
+        </set>
+    </class>
+</hibernate-mapping>

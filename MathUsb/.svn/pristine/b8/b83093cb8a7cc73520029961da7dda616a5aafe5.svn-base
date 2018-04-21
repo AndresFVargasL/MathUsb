@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.enable_lazy_load_no_trans">true</property>
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Respuesta.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Asignatura.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/DetalleEvaluacion.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/TipoUsuario.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Tema.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Herramienta.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Evaluacion.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Grupo.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Pregunta.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/TipoEvaluacion.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/UsuarioEvaluacion.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Comentario.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/TipoHerramienta.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/EvaPregRes.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/GrupoUsuario.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Parametro.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Usuario.hbm.xml" />
+        <mapping resource="co/edu/usbcali/mathusb/modelo/Consultas.hbm.xml" />
+    </session-factory>
+</hibernate-configuration>

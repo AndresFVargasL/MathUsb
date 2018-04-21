@@ -1,0 +1,74 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</h:head>
+
+<h:body>
+	<ui:composition template="/WEB-INF/facelets/template.xhtml">
+		<ui:define name="body">
+			<f:view>
+				<p:ajaxStatus onstart="PF('statusDialog').show()"
+					onsuccess="PF('statusDialog').hide()" />
+				<p:dialog modal="true" widgetVar="statusDialog" header="Loading"
+					draggable="false" closable="false">
+					<p:graphicImage
+						value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />
+				</p:dialog>
+
+				<!-- Expired session -->
+				<p:idleMonitor onactive="PF('sessionTimeOutDialog').show();"
+					timeout="#{session.maxInactiveInterval * 1000}" />
+				<p:dialog modal="true" widgetVar="sessionTimeOutDialog"
+					header="Expired session" draggable="false" closable="false">
+					<h:outputText value="The session is finished" />
+					<input id="confirmBackToLogin" type="button" value="Sign in"
+						onclick="window.location='#{facesContext.externalContext.requestContextPath}/index.jsp';" />
+				</p:dialog>
+
+
+				<h:form id="formDialog">
+					<p:messages id="msg" autoUpdate="true" showDetail="false"
+						closable="true" />
+					<p:growl id="men" autoUpdate="true" showDetail="false" />
+					<p:panel id="panelNuevoGrupo" header="Grupo">
+						<h:panelGrid columns="2" id="panelGrid">
+
+
+							<h:outputText id="msgDescripcionGrupo" value="Nombre del grupo" />
+							<p:inputText id="txtDescripcionGrupoCrear" style="width:700px"
+								binding="#{grupoView.txtDescripcionGrupoCrear}" />
+							<h:outputText id="msgIdAsignatura"
+								value="Seleccione una asignatura: " />
+							<p:selectOneMenu id="somAsignaturas"
+								value="#{grupoView.somAsignaturasString}" style="width: 700px">
+								<f:selectItem itemLabel="Seleccione una asignatura"
+									itemValue="0" />
+								<f:selectItems value="#{grupoView.lasAsignaturas}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:panel>
+					<p:panel id="panelBotones">
+						<div align="center">
+							<p:commandButton id="btnGuardarNuevoGrupo"
+								binding="#{grupoView.btnGuardarNuevoGrupo}"
+								value="Guardar curso" action="#{grupoView.guardarNuevoGrupo()}"
+								icon="ui-icon-disk" update="panelNuevoGrupo,msg,panelBotones" />
+							<p:commandButton id="btnLimpiarPantallaNuevoGrupo"
+								binding="#{grupoView.btnLimpiarPantallaNuevoGrupo}"
+								value="Limpiar pantalla"
+								action="#{grupoView.limpiarPantallaCrearGrupo()}"
+								icon="ui-icon-trash" update="panelNuevoGrupo,msg,panelBotones" />
+						</div>
+					</p:panel>
+				</h:form>
+			</f:view>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

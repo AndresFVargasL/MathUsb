@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+<h:head>
+	<title>.::MathUSB::.</title>
+	<meta name="content-type" content="text/html; charset=UTF-8" />
+	<link REL="SHORTCUT ICON"
+		href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/icon.png" />
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css"
+		href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/css/stylelogin.css" />
+</h:head>
+<h:body>
+	<p:ajaxStatus onstart="PF('statusDialog').show()"
+		onsuccess="PF('statusDialog').hide()" />
+	<p:dialog modal="true" widgetVar="statusDialog" header="Cargando"
+		draggable="false" closable="false" resizable="false">
+		<p:graphicImage
+			value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/ajaxloadingbar.gif" />
+	</p:dialog>
+	<div class="wrapper">
+	<h:form id="loginForm" class="form-signin">
+		<p:growl id="msgLogin" autoUpdate="true" showDetail="false" />
+		<div class="container" align="center" style="width : 100%;">
+				<p:graphicImage value="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/images/login.png" width="282" height="66" />
+				<p:inputText id="usernameField" name="j_username" style="margin-bottom: -1px;border-bottom-left-radius: 0;border-bottom-right-radius: 0;"
+					value="#{loginView.userId}" placeholder="Usuario"
+					styleClass="form-control" />
+				<p:password id="passwordField" name="j_password" style="margin-bottom: 20px;border-top-left-radius: 0;border-top-right-radius: 0;"
+					value="#{loginView.password}" placeholder="Clave"
+					styleClass="form-control" feedback="false" />
+				<div align="center">
+				<h5 class="form-signin-heading">
+					<h:outputText rendered="${param.authfailed eq 'true'}"
+						value="Usuario o Clave incorrectos" style="color: red;"/>
+					<h:outputText rendered="${param.loggedout eq 'true'}"
+						value="Sesion Finalizada Exitosamente" style="color: green;"/>
+					<h:outputText rendered="${param.exceededAllowed eq 'true'}"
+						value="Tiempo de inactividad Excedido" style="color: green;"/>
+					<h:outputText rendered="${param.usrCrtdSflly eq 'true'}"
+						value="Usuario creado exitosamente.¡Gracias por registrarse!." style="color: green;"/>
+				</h5>
+				</div>
+				<p:commandButton value="Iniciar Sesión"
+					styleClass="btn btn-lg btn-primary btn-block"
+					action="#{loginView.login}" update="@([id$=msgLogin])" />
+				<br></br>
+			<p:link
+				href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/registrarDocente.xhtml"
+				value="Eres docente, registrate" />
+			<br></br>
+			<p:link
+				href="#{facesContext.externalContext.request.scheme}://#{facesContext.externalContext.request.serverName}:#{facesContext.externalContext.request.serverPort}#{facesContext.externalContext.request.contextPath}/registrarEstudiante.xhtml"
+				value="Eres estudiante, registrate" />
+
+
+			
+
+		</div>
+	</h:form>
+	</div>
+</h:body>
+</html>

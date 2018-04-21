@@ -1,0 +1,26 @@
+<jsp:root jsfc="f:view" xmlns:jsp="http://java.sun.com/JSP/Page"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:c="http://java.sun.com/jstl/core"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+   
+   <html>
+		<body>
+			<f:view>
+				<ui:composition>
+					<!-- Beging header -->
+						<div class="jumbotron">
+					      <div class="container">
+					        <h1>MathUSB</h1>
+					        <p>Para hablar de los aspectos pedagogicos de la plataforma MathUSB, debemos entender el tipo de aprendizaje que se busca con este proyecto.Se busca con el proyecto, privilegiar el aprendizaje colaborativo, permitiendo una comunicacion directa docente a estudiantes y entre estudiantes.</p>
+					        <h2>Hola #{usuarioView.nombreUsuarioString}</h2>
+					      </div>
+    					</div>
+					<!-- end header -->
+				</ui:composition>
+			</f:view>
+		</body>
+	</html>
+</jsp:root>

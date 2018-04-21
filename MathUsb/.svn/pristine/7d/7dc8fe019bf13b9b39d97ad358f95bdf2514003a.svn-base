@@ -1,0 +1,115 @@
+package co.edu.usbcali.mathusb.dataaccess.dao;
+
+import co.edu.usbcali.mathusb.dataaccess.api.HibernateDaoImpl;
+import co.edu.usbcali.mathusb.modelo.Evaluacion;
+import co.edu.usbcali.mathusb.modelo.dto.EvaluacionReporteDTO;
+
+import org.hibernate.Query;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Example;
+import org.hibernate.transform.Transformers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+
+/**
+ * A data access object (DAO) providing persistence and search support for
+ * Evaluacion entities. Transaction control of the save(), update() and
+ * delete() operations can directly support Spring container-managed
+ * transactions or they can be augmented to handle user-managed Spring
+ * transactions. Each of these methods provides additional information for how
+ * to configure it for the desired type of transaction control.
+ *
+ * @see lidis.Evaluacion
+ */
+@Scope("singleton")
+@Repository("EvaluacionDAO")
+public class EvaluacionDAO extends HibernateDaoImpl<Evaluacion, Long>
+    implements IEvaluacionDAO {
+    private static final Logger log = LoggerFactory.getLogger(EvaluacionDAO.class);
+    @Resource
+    private SessionFactory sessionFactory;
+
+    public static IEvaluacionDAO getFromApplicationContext(
+        ApplicationContext ctx) {
+        return (IEvaluacionDAO) ctx.getBean("EvaluacionDAO");
+    }
+
+	@Override
+	public List<Evaluacion> obtenerEvaluacionesDadoIdUsuario(Long idUsuario) {
+		String hql = "SELECT e "
+				+ "FROM Evaluacion e, UsuarioEvaluacion ue, DetalleEvaluacion de "
+				+ "WHERE de.evaluacion.evalId = e.evalId AND "
+				+ "ue.evaluacion.evalId = e.evalId AND "
+				+ "ue.usuario.usuaId = '"+idUsuario+"' "
+						+ "ORDER BY de.fechaInicioPublicacion DESC ";
+		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		
+		return query.list();
+	}
+
+	@Override
+	public List<Evaluacion> obtenerEvaluacionesDelGrupo(Long idGrupo) {
+		String hql = "SELECT e "
+				+ "FROM Evaluacion e "
+				+ "WHERE e.grupo.grupId = '"+idGrupo+"' "
+						+ "ORDER BY e.evalId ASC";
+		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		return query.list();
+	}
+
+	@Override
+	public List<Evaluacion> obtenerEvaluacionesDelGrupoDisponiblesEnFechaHoy(Long idGrupo, String fechaHoy) {
+		String hql = "SELECT e "
+				+ "FROM Evaluacion e, DetalleEvaluacion de "
+				+ "WHERE e.grupo.grupId = '"+idGrupo+"' AND "
+				+ "e.evalId = de.evaluacion.evalId AND "
+				+ "'"+fechaHoy+"' between de.fechaInicioPublicacion AND "
+						+ "de.fechaFinPublicacion";
+		Query query = sessionFactory.getCurrentSession().createQuery(hql);
+		return query.list();
+	}
+	
+	@Override
+    public List<EvaluacionReporteDTO> consutaEvaluacionParaReporte(Long evalId) throws Exception{
+		
+		if(evalId == null){
+			throw new Exception("Porfavor especifique un identificador de la evaluación a consultar.");
+		}
+
+    	List<EvaluacionReporteDTO> listDto = null;
+
+    	try {
+    		
+    		Query query = getSession().getNamedQuery("consulta_evaluaciones_reporte");
+    		
+    		query.setParameter("pIdEvaluacion", evalId);
+
+    	    query.setResultTransformer(Transformers.aliasToBean(EvaluacionReporteDTO.class));
+    		
+    	    listDto = query.list();
+
+    	} catch (Exception e) {
+    		
+    		log.error(e.getMessage());
+    		
+    		throw e;
+    		
+    	}
+
+    	return listDto;
+
+    }
+}

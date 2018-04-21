@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 15/05/2016 07:07:19 PM by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Evaluacion" table="evaluacion" schema="public">
+        <id name="evalId" type="java.lang.Long">
+            <column name="eval_id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="grupo" class="co.edu.usbcali.mathusb.modelo.Grupo" fetch="select">
+            <column name="grup_id" />
+        </many-to-one>
+        <many-to-one name="tipoEvaluacion" class="co.edu.usbcali.mathusb.modelo.TipoEvaluacion" fetch="select">
+            <column name="tiev_id" />
+        </many-to-one>
+        <property name="estadoRegistro" type="java.lang.String">
+            <column name="estado_registro" length="1" not-null="true" />
+        </property>
+        <set name="usuarioEvaluacions" table="usuario_evaluacion" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="eval_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.UsuarioEvaluacion" />
+        </set>
+        <set name="evaPregReses" table="eva_preg_res" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="eval_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.EvaPregRes" />
+        </set>
+        <set name="detalleEvaluacions" table="detalle_evaluacion" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="eval_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.DetalleEvaluacion" />
+        </set>
+    </class>
+</hibernate-mapping>

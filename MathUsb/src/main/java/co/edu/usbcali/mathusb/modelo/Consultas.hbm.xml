@@ -1,0 +1,67 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="co.edu.usbcali.mathusb.modelo">
+
+	<sql-query name="consulta_evaluaciones_reporte">
+		
+		<return-scalar column="idPregunta" type="java.lang.Integer" />
+		<return-scalar column="grupo" type="java.lang.String" />
+		<return-scalar column="asignatura" type="java.lang.String" />
+		<return-scalar column="tituloTema" type="java.lang.String" />
+		<return-scalar column="descripcionTema" type="java.lang.String" />
+		<return-scalar column="palabrasClave" type="java.lang.String" />
+		<return-scalar column="preguntaMathXml" type="java.lang.String" />
+		<return-scalar column="fechaDesde" type="java.util.Date" />
+		<return-scalar column="fechaHasta" type="java.util.Date" />
+		<return-scalar column="corte" type="java.lang.Integer" />
+		<return-scalar column="asuntoEvaluacion" type="java.lang.String" />
+		<return-scalar column="tipoEvaluacion" type="java.lang.String" />
+
+        <![CDATA[
+	        
+	        SELECT PREG.PREG_ID idPregunta, 
+	        GRUPO.DESCRIPCION_GRUPO grupo,
+			ASIG.NOMBRE_ASIGNATURA asignatura,
+			TEMA.TITULO_TEMA tituloTema,
+			TEMA.DESCRIPCION_TEMA descripcionTema,
+			TEMA.PALABRAS_CLAVE palabrasClave,
+			PREG.DESCRIPCION_PREGUNTA preguntaMathXml,
+			DE.FECHA_INICIO_PUBLICACION fechaDesde,
+			DE.FECHA_FIN_PUBLICACION fechaHasta,
+			DE.CORTE corte,
+			DE.ASUNTO asuntoEvaluacion,
+			TIEV.DESCRIPCION_TIPO_EVALUACION tipoEvaluacion
+				FROM EVALUACION EVAL
+				INNER JOIN EVA_PREG_RES EVP ON EVP.EVAL_ID = EVAL.EVAL_ID
+				INNER JOIN PREGUNTA PREG ON PREG.PREG_ID = EVP.PREG_ID
+				INNER JOIN DETALLE_EVALUACION DE ON DE.EVAL_ID = EVAL.EVAL_ID
+				INNER JOIN TIPO_EVALUACION TIEV ON TIEV.TIEV_ID = EVAL.TIEV_ID
+				INNER JOIN GRUPO GRUPO ON GRUPO.GRUP_ID = EVAL.GRUP_ID
+				INNER JOIN ASIGNATURA ASIG ON ASIG.ASIG_ID = GRUPO.ASIG_ID
+				INNER JOIN TEMA TEMA ON TEMA.TEMA_ID= PREG.TEMA_ID
+					WHERE EVAL.ESTADO_REGISTRO = 'A'
+					AND EVAL.EVAL_ID = :pIdEvaluacion
+						ORDER BY PREG.PREG_ID ASC
+							
+        ]]>
+	</sql-query>
+	
+	<sql-query name="obtenerEvaluacionesDelGrupoDisponiblesEnFechaHoy">
+		
+		<return alias="EVAL" class="co.edu.usbcali.mathusb.modelo.Evaluacion"></return>
+
+        <![CDATA[
+	        
+	        SELECT EVAL.*
+			FROM EVALUACION EVAL, DETALLE_EVALUACION DE
+			WHERE EVAL.GRUP_ID = :pGrupoId AND
+			EVAL.EVAL_ID = DE.EVAL_ID 
+			AND NOW() BETWEEN DE.FECHA_INICIO_PUBLICACION AND DE.FECHA_FIN_PUBLICACION
+							
+        ]]>
+	</sql-query>
+
+	
+
+</hibernate-mapping>	

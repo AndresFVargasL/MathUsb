@@ -1,0 +1,41 @@
+<jsp:root jsfc="f:view" xmlns:jsp="http://java.sun.com/JSP/Page"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:c="http://java.sun.com/jstl/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+
+	<html>
+<body>
+	<f:view>
+		<ui:composition>
+			<!-- Beging Menu -->
+
+			<h:form>
+
+				<style type="text/css">
+					.ui-menubar {
+						background-color: #EEF4F9 !important;
+						width: 95%;
+						border-color: red;
+						background: white;
+					}
+					.ui-menu.ui-menubar .ui-menu-parent .ui-menu-child{
+						padding:5px 0;
+						width: 300px;
+					}
+				</style>
+				<div style="width: 100%;">
+				<p:menubar id="menuBarTemplate" model="#{menuView.model}" 
+					autoDisplay="true" styleClass="ui-menubar" />
+				</div>
+
+			</h:form>
+
+			<!-- end menu -->
+		</ui:composition>
+	</f:view>
+</body>
+	</html>
+</jsp:root>

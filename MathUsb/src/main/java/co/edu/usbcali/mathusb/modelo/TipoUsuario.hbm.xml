@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.TipoUsuario" table="tipo_usuario" schema="public">
+        <id name="tiusId" type="java.lang.Long">
+            <column name="tius_id" />
+            <generator class="assigned" />
+        </id>
+        <property name="descripcionTipoDeUsuario" type="java.lang.String">
+            <column name="descripcion_tipo_de_usuario" length="2500" not-null="true" />
+        </property>
+        <property name="nombreCorto" type="java.lang.String">
+            <column name="nombre_corto" length="10" not-null="true" />
+        </property>
+        <set name="usuarios" table="usuario" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="tius_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.Usuario" />
+        </set>
+    </class>
+</hibernate-mapping>
