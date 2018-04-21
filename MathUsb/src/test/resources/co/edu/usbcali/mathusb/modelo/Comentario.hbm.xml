@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Comentario" table="comentario" schema="public">
+        <id name="comenId" type="java.lang.Long">
+            <column name="comen_id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="comentario" class="co.edu.usbcali.mathusb.modelo.Comentario" fetch="select">
+            <column name="fk_comen_id" />
+        </many-to-one>
+        <many-to-one name="usuario" class="co.edu.usbcali.mathusb.modelo.Usuario" fetch="select">
+            <column name="usua_id" />
+        </many-to-one>
+        <property name="tituloComentario" type="java.lang.String">
+            <column name="titulo_comentario" length="2500" />
+        </property>
+        <property name="contenidoComentario" type="java.lang.String">
+            <column name="contenido_comentario" length="10485760" not-null="true" />
+        </property>
+        <set name="comentarios" table="comentario" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="fk_comen_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.Comentario" />
+        </set>
+    </class>
+</hibernate-mapping>

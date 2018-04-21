@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Usuario" table="usuario" schema="public">
+        <id name="usuaId" type="java.lang.Long">
+            <column name="usua_id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="tipoUsuario" class="co.edu.usbcali.mathusb.modelo.TipoUsuario" fetch="select">
+            <column name="tius_id" />
+        </many-to-one>
+        <property name="nombreUsuario" type="java.lang.String">
+            <column name="nombre_usuario" length="2500" not-null="true" />
+        </property>
+        <property name="apellidoUsuario" type="java.lang.String">
+            <column name="apellido_usuario" length="2500" not-null="true" />
+        </property>
+        <property name="emailUsuario" type="java.lang.String">
+            <column name="email_usuario" length="2500" not-null="true" />
+        </property>
+        <property name="passwordUsuario" type="java.lang.String">
+            <column name="password_usuario" length="2500" not-null="true" />
+        </property>
+        <property name="codigoUsuario" type="java.lang.String">
+            <column name="codigo_usuario" length="2500" not-null="true"/>
+        </property>
+        <property name="estadoRegistro" type="java.lang.String">
+            <column name="estado_registro" length="1" not-null="true" />
+        </property>
+        <set name="comentarios" table="comentario" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="usua_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.Comentario" />
+        </set>
+        <set name="usuarioEvaluacions" table="usuario_evaluacion" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="usua_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.UsuarioEvaluacion" />
+        </set>
+        <set name="grupoUsuarios" table="grupo_usuario" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="usua_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.GrupoUsuario" />
+        </set>
+        <set name="herramientas" table="herramienta" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="usua_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.Herramienta" />
+        </set>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.DetalleEvaluacion" table="detalle_evaluacion" schema="public">
+        <id name="deevId" type="java.lang.Long">
+            <column name="deev_id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="evaluacion" class="co.edu.usbcali.mathusb.modelo.Evaluacion" fetch="select">
+            <column name="eval_id" />
+        </many-to-one>
+        <property name="fechaInicioPublicacion" type="java.util.Date">
+            <column name="fecha_inicio_publicacion" length="35" not-null="true" />
+        </property>
+        <property name="fechaFinPublicacion" type="java.util.Date">
+            <column name="fecha_fin_publicacion" length="35" not-null="true" />
+        </property>
+        <property name="fechaCreacion" type="java.util.Date">
+            <column name="fecha_creacion" length="35" not-null="true" />
+        </property>
+        <property name="corte" type="java.lang.Long">
+            <column name="corte" not-null="true" />
+        </property>
+        <property name="asunto" type="java.lang.String">
+            <column name="asunto" length="2500" />
+        </property>
+    </class>
+</hibernate-mapping>

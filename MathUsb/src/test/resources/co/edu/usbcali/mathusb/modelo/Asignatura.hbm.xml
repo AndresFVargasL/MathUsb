@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-mar-2016 0:44:35 by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="co.edu.usbcali.mathusb.modelo.Asignatura" table="asignatura" schema="public">
+        <id name="asigId" type="java.lang.Long">
+            <column name="asig_id" />
+            <generator class="identity" />
+        </id>
+        <property name="nombreAsignatura" type="java.lang.String">
+            <column name="nombre_asignatura" length="2500" not-null="true" />
+        </property>
+        <set name="grupos" table="grupo" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="asig_id" />
+            </key>
+            <one-to-many class="co.edu.usbcali.mathusb.modelo.Grupo" />
+        </set>
+    </class>
+</hibernate-mapping>
