@@ -489,7 +489,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
             <includes>
-                <include>**/*PruebaUsuario*.java</include>
+                <include>**/*Tipo*.java</include>
             </includes>
         </configuration>
    	  </plugin>
